@@ -8,7 +8,7 @@ The implementation of the glm_flare_v3 for Lake Alexandrina has some differences
 
 The `sim_name` for these automated forecasts is **`glm_flare_v3_crest`**.
 
-More information on the set-up of the *configuration* is in the [README](../../configuration/README.md).
+More information on the set-up of the *configuration* is in the [README](../../configuration/glm_flare_v3/README.md).
 
 ### Assimilation of depth, salinity, and water temperature observation
 
