@@ -1,7 +1,3 @@
----
-output: html_document
----
-
 # ALEX-forecast-code
 
 This workflow is the current automation of glm_flare_v3 for Lake Alexandrina and uses the configuration of the same name.
@@ -12,13 +8,15 @@ The implementation of the glm_flare_v3 for Lake Alexandrina has some differences
 
 The `sim_name` for these automated forecasts is **`glm_flare_v3_crest`**.
 
+More information on the set-up of the *configuration* is in the [README](../../configuration/README.md).
+
 ### Assimilation of depth, salinity, and water temperature observation
 
 As part of the Lake Alexandrina workflow we assimilate observations of lake water temperature and lake salinity (both from the surface, 0.5 m) and lake depth/height/level. These are specified in the [observations_config](../../configuration/glm_flare_v3/observations_config.csv).The assimilation of these data (especially lake depth) is crucial for the fitting of the `crest_elev` parameter during DA. As we do not specify an outlet for this configuration we use overflow over the crest as the estimate of outflow through barrages. See below.
 
 ### Using the weir crest as an outflow
 
-We have configured GLM to have a weir as the primary means of outflow instead of a specified outflow. The dimensions of the weir crest are defined in the glm.nml (crest_elev in &morphometry, crest_width and crest_factor in &outflow). As assimilation of lake depth data occurs the crest_elev is lowered/raised corresponding to greater/reduced overflow possible (and changes in barrage flow). The crest_elev parameter is tuned during DA but then fixed during the forecast period. To do this we need to run the spin-up/look-back using a different par_fit_method (`config_flare_yaml$da_setup$par_fit_method`) than during the forecast period. Therefore, the workflow does the following:
+We have configured GLM to have a weir as the primary means of outflow instead of a specified outflow. The dimensions of the weir crest are defined in the `glm3.nml` (`crest_elev` in `&morphometry`, `crest_width` and `crest_factor` in` &outflow`). As assimilation of lake depth data occurs the crest_elev is lowered/raised corresponding to greater/reduced overflow possible (and changes in barrage flow). The crest_elev parameter is tuned during DA but then fixed during the forecast period. To do this we need to run the spin-up/look-back using a different par_fit_method (`config_flare_yaml$da_setup$par_fit_method`) than during the forecast period. Therefore, the workflow does the following:
 
 -   for the DA period the run_config is updated to: set the forecast_horizon = 0 and in the flare_config the `da_setup$par_fit_method` is set to `peturb`.
 -   runs the spin-up/look-back up to today, stops FLARE, reads in the 'forecast' output and copies restart.nc files to prevent overwriting (and to use later for the scenarios! - see below).
