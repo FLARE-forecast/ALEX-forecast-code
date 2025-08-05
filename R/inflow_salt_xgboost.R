@@ -15,13 +15,14 @@ generate_salt_inflow_fc <- function(config,
   
   # Get historic met ----------------
   message("getting met data")
-  met_s3_historical <- duckdbfs::open_dataset(paste0("bio230121-bucket01/flare/drivers/met/gefs-v12/stage3/site_id=",site_id),
+  met_s3_historical <- 
+    duckdbfs::open_dataset(paste0("s3://bio230121-bucket01/flare/drivers/met/gefs-v12/stage3/site_id=",site_id),
                                               s3_endpoint = config$s3$drivers$endpoint,
-                                              anonymous = TRUE) |> 
+                                              anonymous = TRUE) |>
     # arrow::s3_bucket(paste0("bio230121-bucket01/flare/drivers/met/gefs-v12/stage3/site_id=",site_id),
-    #                                     endpoint_override = config$s3$drivers$endpoint,
-    #                                     anonymous = TRUE) |> 
-    #arrow::open_dataset() |> 
+    #                                      endpoint_override = config$s3$drivers$endpoint,
+    #                                      anonymous = TRUE) |> 
+    # arrow::open_dataset() |> 
     dplyr::filter(variable %in% met_vars,
                   datetime < reference_date,
                   datetime > start_training) |>
@@ -32,7 +33,7 @@ generate_salt_inflow_fc <- function(config,
     dplyr::select(-reference_datetime)
   
   # Get future met
-  met_s3_future <- duckdbfs::open_dataset(file.path("bio230121-bucket01/flare/drivers/met/gefs-v12/stage2",
+  met_s3_future <- duckdbfs::open_dataset(file.path("s3://bio230121-bucket01/flare/drivers/met/gefs-v12/stage2",
                                                     paste0("reference_datetime=", noaa_date),
                                                     paste0("site_id=", site_id)),
                                           s3_endpoint = config$s3$drivers$endpoint,

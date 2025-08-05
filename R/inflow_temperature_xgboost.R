@@ -14,7 +14,7 @@ generate_temp_inflow_fc <- function(config,
   
   # Get historic met ----------------
   message("getting met data")
-  met_s3_historical <- duckdbfs::open_dataset(paste0("bio230121-bucket01/flare/drivers/met/gefs-v12/stage3/site_id=",site_id),
+  met_s3_historical <- duckdbfs::open_dataset(paste0("s3://bio230121-bucket01/flare/drivers/met/gefs-v12/stage3/site_id=",site_id),
                                               s3_endpoint = config$s3$drivers$endpoint,
                                               anonymous = TRUE) |> 
     # arrow::s3_bucket(paste0("bio230121-bucket01/flare/drivers/met/gefs-v12/stage3/site_id=",site_id),
@@ -31,7 +31,7 @@ generate_temp_inflow_fc <- function(config,
     dplyr::select(-reference_datetime)
   
   # Get future met
-  met_s3_future <- duckdbfs::open_dataset(file.path("bio230121-bucket01/flare/drivers/met/gefs-v12/stage2",
+  met_s3_future <- duckdbfs::open_dataset(file.path("s3://bio230121-bucket01/flare/drivers/met/gefs-v12/stage2",
                                                     paste0("reference_datetime=", noaa_date),
                                                     paste0("site_id=", site_id)),
                                           s3_endpoint = config$s3$drivers$endpoint,
