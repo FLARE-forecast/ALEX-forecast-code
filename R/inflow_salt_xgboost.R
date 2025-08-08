@@ -27,6 +27,7 @@ generate_salt_inflow_fc <- function(config,
                   datetime < reference_date,
                   datetime > start_training) |>
     dplyr::collect() |> 
+    dplyr::distinct() |>
     dplyr::mutate(variable = ifelse(variable == "precipitation_flux", "precipitation", variable),
                   variable = ifelse(variable == "air_temperature", "temperature_2m", variable),
                   prediction = ifelse(variable == "temperature_2m", prediction - 273.15, prediction)) |> 
@@ -49,6 +50,7 @@ generate_salt_inflow_fc <- function(config,
     dplyr::filter(variable %in% met_vars, 
                   datetime >= reference_date) |> 
     dplyr::collect() |> 
+    dplyr::distinct() |>
     dplyr::mutate(variable = ifelse(variable == "precipitation_flux", "precipitation", variable),
                   variable = ifelse(variable == "air_temperature", "temperature_2m", variable),
                   prediction = ifelse(variable == "temperature_2m", prediction - 273.15, prediction)) 
