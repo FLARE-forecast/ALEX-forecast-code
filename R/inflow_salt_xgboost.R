@@ -29,12 +29,19 @@ generate_salt_inflow_fc <- function(config,
     dplyr::filter(variable %in% met_vars,
                   datetime < reference_date,
                   datetime > start_training) |>
-    dplyr::collect() |> 
+    dplyr::collect() #|>
+  
+  print(nrow(met_s3_historical))
+  
+  met_s3_historical <- met_s3_historical |> 
     dplyr::distinct() |>
     dplyr::mutate(variable = ifelse(variable == "precipitation_flux", "precipitation", variable),
                   variable = ifelse(variable == "air_temperature", "temperature_2m", variable),
                   prediction = ifelse(variable == "temperature_2m", prediction - 273.15, prediction)) |> 
     dplyr::select(-reference_datetime)
+  
+  print(nrow(met_s3_historical))
+  
   
   # Get future met
   met_s3_future <- #duckdbfs::open_dataset(file.path("s3://bio230121-bucket01/flare/drivers/met/gefs-v12/stage2",
@@ -52,12 +59,17 @@ generate_salt_inflow_fc <- function(config,
     arrow::open_dataset() |> 
     dplyr::filter(variable %in% met_vars, 
                   datetime >= reference_date) |> 
-    dplyr::collect() |> 
+    dplyr::collect() #|>
+  
+  print(nrow(met_s3_future))
+  
+  met_s3_future <- met_s3_future
     dplyr::distinct() |>
     dplyr::mutate(variable = ifelse(variable == "precipitation_flux", "precipitation", variable),
                   variable = ifelse(variable == "air_temperature", "temperature_2m", variable),
                   prediction = ifelse(variable == "temperature_2m", prediction - 273.15, prediction)) 
   
+  print(nrow(met_s3_future))
   
   # combine past and future noaa data
   met_combined <- bind_rows(met_s3_historical, met_s3_future) |> 
