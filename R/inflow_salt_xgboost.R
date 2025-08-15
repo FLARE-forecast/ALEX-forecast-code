@@ -5,6 +5,9 @@ generate_salt_inflow_fc <- function(config,
                                     met_vars = c("precipitation_flux", "air_temperature"), 
                                     flow_obs = file.path(config$file_path$qaqc_data_directory, "ALEX-targets-inflow.csv")) {
   
+  
+  print(sessioninfo::package_info())
+
   # Set up
   reference_date <- lubridate::as_datetime(config$run_config$forecast_start_datetime)
   noaa_date <- reference_date - lubridate::days(1)
