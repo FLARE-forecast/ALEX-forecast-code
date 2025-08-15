@@ -63,18 +63,22 @@ generate_salt_inflow_fc <- function(config,
   
   print(nrow(met_s3_future))
   
-  met_s3_future <- met_s3_future
+  met_s3_future <- met_s3_future |>
     dplyr::distinct() |>
     dplyr::mutate(variable = ifelse(variable == "precipitation_flux", "precipitation", variable),
                   variable = ifelse(variable == "air_temperature", "temperature_2m", variable),
                   prediction = ifelse(variable == "temperature_2m", prediction - 273.15, prediction)) 
   
   print(nrow(met_s3_future))
+
   
   # combine past and future noaa data
   met_combined <- bind_rows(met_s3_historical, met_s3_future) |> 
     dplyr::arrange(variable, parameter,datetime) |> 
-    dplyr::distinct() |> 
+    dplyr::distinct() #|> 
+
+  print(head(met_combined))
+  met_combined <- met_combined |>
     tidyr::pivot_wider(names_from = variable, values_from = prediction) |> 
     dplyr::mutate(date = lubridate::as_date(datetime)) |> 
     dplyr::reframe(precip = sum(precipitation, na.rm = TRUE), # what is the total per day
