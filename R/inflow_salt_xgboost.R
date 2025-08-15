@@ -78,6 +78,12 @@ generate_salt_inflow_fc <- function(config,
     dplyr::distinct() #|> 
 
   print(head(met_combined))
+  
+  met_test <- met_combined |> 
+    filter(variable == 'precipitation', prediction == 0)
+  
+  print(met_test, n = 100)
+  
   met_combined <- met_combined |>
     tidyr::pivot_wider(names_from = variable, values_from = prediction) |> 
     dplyr::mutate(date = lubridate::as_date(datetime)) |> 
