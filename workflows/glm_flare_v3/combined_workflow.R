@@ -41,7 +41,7 @@ if(config$run_config$use_s3){
 }
 noaa_ready <- TRUE
 
-
+print(paste0('forecast start date: ',config$run_config$forecast_start_datetime))
 
 while(noaa_ready){
   
