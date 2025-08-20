@@ -25,7 +25,7 @@ generate_temp_inflow_fc <- function(config,
                   datetime < reference_date,
                   datetime > start_training) |>
     dplyr::collect() |> 
-    dplyr::distinct() |>
+    dplyr::distinct(parameter, datetime, variable, family, reference_datetime, .keep_all = TRUE) |>
     dplyr::mutate(variable = ifelse(variable == "precipitation_flux", "precipitation", variable),
                   variable = ifelse(variable == "air_temperature", "temperature_2m", variable),
                   prediction = ifelse(variable == "temperature_2m", prediction - 273.15, prediction)) |> 
@@ -48,7 +48,7 @@ generate_temp_inflow_fc <- function(config,
     dplyr::filter(variable %in% met_vars, 
                   datetime >= reference_date) |> 
     dplyr::collect() |> 
-    dplyr::distinct() |>
+    dplyr::distinct(parameter, datetime, variable, family, .keep_all = TRUE) |>
     dplyr::mutate(variable = ifelse(variable == "precipitation_flux", "precipitation", variable),
                   variable = ifelse(variable == "air_temperature", "temperature_2m", variable),
                   prediction = ifelse(variable == "temperature_2m", prediction - 273.15, prediction)) 
@@ -57,8 +57,8 @@ generate_temp_inflow_fc <- function(config,
   # combine past and future noaa data
   met_combined <- bind_rows(met_s3_historical, met_s3_future) |> 
     dplyr::arrange(variable, parameter,datetime) |> 
-    dplyr::distinct() |> 
-   tidyr::pivot_wider(names_from = variable, values_from = prediction) |> 
+    dplyr::distinct(parameter, datetime, variable, family, .keep_all = TRUE) |> 
+    tidyr::pivot_wider(names_from = variable, values_from = prediction) |> 
     dplyr::mutate(date = lubridate::as_date(datetime)) |> 
     dplyr::reframe(precip = sum(precipitation, na.rm = TRUE), # what is the total per day
                    temperature = median(temperature_2m, na.rm = TRUE), # what is the average temperature per day
