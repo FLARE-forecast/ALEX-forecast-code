@@ -92,8 +92,8 @@ generate_salt_inflow_fc <- function(config,
   
   met_combined <- met_combined_first |> 
     dplyr::reframe(precip = sum(precipitation, na.rm = TRUE), # what is the total per day
-            temperature = median(temperature_2m, na.rm = TRUE), # what is the average temperature per day
-            .by = c("date", "parameter")) |> # retain the ensemble members 
+                   temperature = median(temperature_2m, na.rm = TRUE), # what is the average temperature per day
+                   .by = c("date", "parameter")) |> # retain the ensemble members 
     dplyr::group_by(parameter) |> 
     dplyr::mutate(threeday_precip = RcppRoll::roll_sum(precip, n = 3, fill = NA,align = "right"), # calculate a 15-day rolling sum
            threeday_temp = RcppRoll::roll_mean(temperature, n = 3, fill = NA, align = "right"), # calculate a 3-day rolling mean
