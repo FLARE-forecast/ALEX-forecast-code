@@ -34,7 +34,7 @@ generate_salt_inflow_fc <- function(config,
   print(nrow(met_s3_historical))
   
   met_s3_historical <- met_s3_historical |> 
-    dplyr::distinct() |>
+    dplyr::distinct(parameter, datetime, variable, family, reference_datetime, .keep_all = TRUE) |>
     dplyr::mutate(variable = ifelse(variable == "precipitation_flux", "precipitation", variable),
                   variable = ifelse(variable == "air_temperature", "temperature_2m", variable),
                   prediction = ifelse(variable == "temperature_2m", prediction - 273.15, prediction)) |> 
@@ -64,7 +64,7 @@ generate_salt_inflow_fc <- function(config,
   print(nrow(met_s3_future))
   
   met_s3_future <- met_s3_future |>
-    dplyr::distinct() |>
+    dplyr::distinct(parameter, datetime, variable, family, reference_datetime, .keep_all = TRUE) |>
     dplyr::mutate(variable = ifelse(variable == "precipitation_flux", "precipitation", variable),
                   variable = ifelse(variable == "air_temperature", "temperature_2m", variable),
                   prediction = ifelse(variable == "temperature_2m", prediction - 273.15, prediction)) 
