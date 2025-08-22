@@ -174,7 +174,7 @@ future_outflow_RW <- hist_interp_outflow |>
   fabletools::model(RW = fable::RW(box_cox(observation, 0.3))) |>  
   
   # generate forecast of specific horizon with 31 parameters
-  fabletools::generate(h = 30, times = config$da_setup$ensemble_size, bootstrap = T) |> 
+  fabletools::generate(h = 34, times = config$da_setup$ensemble_size, bootstrap = T) |> 
   as_tibble() |> 
   
   rename(parameter = .rep,
