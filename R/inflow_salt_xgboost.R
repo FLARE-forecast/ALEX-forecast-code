@@ -61,7 +61,7 @@ generate_salt_inflow_fc <- function(config,
                   datetime >= reference_date) |> 
     dplyr::collect() #|>
   
-  print(nrow(met_s3_future))
+  #print(nrow(met_s3_future))
   
   met_s3_future <- met_s3_future |>
     dplyr::distinct(parameter, datetime, variable, family, .keep_all = TRUE) |>
@@ -69,7 +69,7 @@ generate_salt_inflow_fc <- function(config,
                   variable = ifelse(variable == "air_temperature", "temperature_2m", variable),
                   prediction = ifelse(variable == "temperature_2m", prediction - 273.15, prediction)) 
   
-  print(nrow(met_s3_future))
+  #print(nrow(met_s3_future))
 
   
   # combine past and future noaa data
@@ -88,7 +88,7 @@ generate_salt_inflow_fc <- function(config,
     tidyr::pivot_wider(names_from = variable, values_from = prediction) |> 
     dplyr::mutate(date = lubridate::as_date(datetime)) #|>
   
-  print(met_combined_first, n = 100)
+  #print(met_combined_first, n = 100)
   
   met_combined <- met_combined_first |> 
     dplyr::reframe(precip = sum(precipitation, na.rm = TRUE), # what is the total per day
