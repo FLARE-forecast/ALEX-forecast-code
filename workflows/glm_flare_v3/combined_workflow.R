@@ -8,7 +8,8 @@ forecast_site <- "ALEX"
 configure_run_file <- "configure_run.yml"
 config_set_name <- "glm_flare_v3"
 
-fresh_run <- TRUE
+#fresh_run <- TRUE
+fresh_run <- FALSE
 
 Sys.setenv("AWS_DEFAULT_REGION" = "amnh1",
            "AWS_S3_ENDPOINT" = "osn.mghpcc.org",
@@ -19,8 +20,7 @@ source('R/generate_forecast_score_arrow.R')
 
 message("Checking for NOAA forecasts")
 
-config <- FLAREr::set_up_simulation(configure_run_file,lake_directory, config_set_name = config_set_name,
-                                    clean_start = fresh_run)
+config <- FLAREr::set_up_simulation(configure_run_file,lake_directory, config_set_name = config_set_namel, clean_start = fresh_run)
 
 # if(fresh_run) unlink(file.path(lake_directory, "restart", "ALEX", config$run_config$sim_name, configure_run_file))
 
@@ -43,9 +43,14 @@ noaa_ready <- TRUE
 
 print(paste0('forecast start date: ',config$run_config$forecast_start_datetime))
 
+
+run_forecast <- tryCatch({
+
 while(noaa_ready){
   
   config <- FLAREr::set_up_simulation(configure_run_file,lake_directory, config_set_name = config_set_name)
+  
+  original_iteration_config <- config
   
   # Generate inflow/outflows
   source(file.path('workflows', config_set_name,'baseline_inflow_workflow.R')) 
@@ -84,7 +89,8 @@ while(noaa_ready){
   
   output <- FLAREr::run_flare(lake_directory = lake_directory,
                               configure_run_file = configure_run_file,
-                              config_set_name = config_set_name)
+                              config_set_name = config_set_name)#,
+                              #clean_start = TRUE)
   
   if (config$run_config$use_s3 == T) {
     DA_period <- arrow::s3_bucket(bucket = file.path(config$s3$forecasts_parquet$bucket,
@@ -430,3 +436,35 @@ while(noaa_ready){
   
   
 }
+
+}, error = function(err){
+  
+  ## IF THERE ARE ANY ERRORS STOP THE RUN AND SAVE THE ORIGINAL CONFIG FILE (allows workflow to start fresh on restart)
+  config <- original_iteration_config
+  
+  FLAREr::update_run_config(lake_directory = lake_directory,
+                            configure_run_file = configure_run_file,
+                            restart_file = config$run_config$restart_file, # uses restart file from previous forecast
+                            start_datetime = config$run_config$start_datetime,
+                            end_datetime = NA,
+                            forecast_start_datetime = config$run_config$forecast_start_datetime,
+                            forecast_horizon = config$run_config$forecast_horizon,
+                            sim_name = config$run_config$sim_name,
+                            site_id = config$location$site_id,
+                            configure_flare = config$run_config$configure_flare,
+                            configure_obs = config$run_config$configure_obs,
+                            use_s3 = config$run_config$use_s3,
+                            bucket = config$s3$restart$bucket,
+                            endpoint = config$s3$restart$endpoint,
+                            use_https = TRUE)
+  
+  stop('Ran into error...resetting config to most recent successful run')
+  
+}, finally = {
+  
+  print('forecast run is complete...')
+  
+}) # end tryCatch statement
+
+## run full forecast with error catching
+run_forecast
