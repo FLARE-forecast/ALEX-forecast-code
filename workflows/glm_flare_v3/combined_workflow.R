@@ -20,7 +20,7 @@ source('R/generate_forecast_score_arrow.R')
 
 message("Checking for NOAA forecasts")
 
-config <- FLAREr::set_up_simulation(configure_run_file,lake_directory, config_set_name = config_set_namel, clean_start = fresh_run)
+config <- FLAREr::set_up_simulation(configure_run_file,lake_directory, config_set_name = config_set_name, clean_start = fresh_run)
 
 # if(fresh_run) unlink(file.path(lake_directory, "restart", "ALEX", config$run_config$sim_name, configure_run_file))
 
