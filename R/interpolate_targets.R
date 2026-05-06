@@ -38,17 +38,60 @@ interpolate_targets <- function(targets,
   }
   
   
-  # generate an interpolation
-  df_interp <- df |>
-    mutate(datetime = as_date(datetime)) |> 
-    tsibble::as_tsibble(key = all_of(grouping_vars), index = datetime) |> 
-    tsibble::fill_gaps() |> 
-    tibble::as_tibble() |> 
-    dplyr::filter(variable %in% filter_vars) |> 
-    dplyr::group_by(dplyr::pick(any_of(grouping_vars))) |> 
-    dplyr::arrange(dplyr::pick(any_of(grouping_vars), datetime)) |> 
-    dplyr::mutate(observation = imputeTS::na_interpolation(observation,option = method)) |> 
-    dplyr::ungroup()
+  
+  forecast_start <- as.Date(config$run_config$forecast_start_datetime)
+  
+  if(max(df$datetime) < forecast_start){
+    date_range <- seq.Date(as.Date(max(df$datetime)), forecast_start, by = 'day')
+    date_range <- date_range[date_range != max(df$datetime)]
+    
+    persistence_value <- df |>  
+      filter(datetime == max(datetime))  |>  
+      pull(observation)
+    
+    persistence_df <- data.frame(site_id = 'ALEX', 
+                                 datetime = date_range,
+                                 variable = "FLOW",
+                                 observation = persistence_value)
+    
+    # generate an interpolation
+    df_interp <- df |>
+      mutate(datetime = as_date(datetime)) |> 
+      bind_rows(persistence_df) |>
+      tsibble::as_tsibble(key = all_of(grouping_vars), index = datetime) |> 
+      tsibble::fill_gaps() |> 
+      tibble::as_tibble() |> 
+      dplyr::filter(variable %in% filter_vars) |> 
+      dplyr::group_by(dplyr::pick(any_of(grouping_vars))) |> 
+      dplyr::arrange(dplyr::pick(any_of(grouping_vars), datetime)) |> 
+      dplyr::mutate(observation = imputeTS::na_interpolation(observation,option = method)) |> 
+      dplyr::ungroup()
+  } else {
+    # generate an interpolation
+    df_interp <- df |>
+      mutate(datetime = as_date(datetime)) |> 
+      tsibble::as_tsibble(key = all_of(grouping_vars), index = datetime) |> 
+      tsibble::fill_gaps() |> 
+      tibble::as_tibble() |> 
+      dplyr::filter(variable %in% filter_vars) |> 
+      dplyr::group_by(dplyr::pick(any_of(grouping_vars))) |> 
+      dplyr::arrange(dplyr::pick(any_of(grouping_vars), datetime)) |> 
+      dplyr::mutate(observation = imputeTS::na_interpolation(observation,option = method)) |> 
+      dplyr::ungroup()
+  }
+  
+  
+  # # generate an interpolation
+  # df_interp <- df |>
+  #   mutate(datetime = as_date(datetime)) |> 
+  #   tsibble::as_tsibble(key = all_of(grouping_vars), index = datetime) |> 
+  #   tsibble::fill_gaps() |> 
+  #   tibble::as_tibble() |> 
+  #   dplyr::filter(variable %in% filter_vars) |> 
+  #   dplyr::group_by(dplyr::pick(any_of(grouping_vars))) |> 
+  #   dplyr::arrange(dplyr::pick(any_of(grouping_vars), datetime)) |> 
+  #   dplyr::mutate(observation = imputeTS::na_interpolation(observation,option = method)) |> 
+  #   dplyr::ungroup()
   
   return(df_interp)
   
