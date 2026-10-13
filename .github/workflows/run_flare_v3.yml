@@ -17,6 +17,10 @@ jobs:
         shell: Rscript {0}
         run: |
           install.packages(c('oce', 'fable'))
+          # update tidymodels packages for compatibility with xgboost 3.x in the container
+          # (the image's default repo is a frozen 2025-04-10 snapshot, so use the latest one)
+          install.packages(c('parsnip', 'tune', 'workflows', 'dials', 'hardhat'),
+                           repos = 'https://p3m.dev/cran/__linux__/noble/latest')
           remotes::install_github('cboettig/duckdbfs')
           
       - name: Checkout repo
