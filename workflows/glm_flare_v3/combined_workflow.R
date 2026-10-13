@@ -431,7 +431,9 @@ while(noaa_ready){
   RCurl::url.exists("https://hc-ping.com/31c3e142-8f8c-42ae-9edc-d277adb94b31", timeout = 5)
   
   }, error = function(err){
-    
+
+    message("Error: ", conditionMessage(err))
+
     ## IF THERE ARE ANY ERRORS STOP THE RUN AND SAVE THE ORIGINAL CONFIG FILE (allows workflow to start fresh on restart)
     config <- original_iteration_config
     
