@@ -111,8 +111,17 @@ generate_temp_inflow_fc <- function(config,
     tidyr::pivot_longer(cols = precip:doy, names_to = 'variable', values_to = 'value') |> 
     dplyr::reframe(.by = c('parameter','date', 'variable'),
                    value = median(value)) |> 
-    tidyr::pivot_wider(names_from = variable, values_from = 'value') #|> 
+    tidyr::pivot_wider(names_from = variable, values_from = 'value') #|>
   # left_join(upstream, by = c('date')) # combine with upstream
+
+  # make sure every ensemble member is present on every day (e.g. the last NOAA day can be missing members)
+  # missing members are filled with that member's previous day of met
+  forecast_df <- forecast_df |>
+    tidyr::complete(parameter, date) |>
+    dplyr::arrange(parameter, date) |>
+    dplyr::group_by(parameter) |>
+    tidyr::fill(-c(parameter, date), .direction = "down") |>
+    dplyr::ungroup()
   
   
   ## RUN PREDICTIONS
@@ -202,10 +211,19 @@ generate_temp_inflow_fc <- function(config,
   
   for (i in 1:length(forecast_dates)) {
     
-    previous_prediction <- temp_forecast |> dplyr::filter(date == forecast_dates[i] - days(1)) |> pull(prediction)
-    
-    single_date <- dplyr::filter(forecast_df, date == forecast_dates[i]) |> 
-      dplyr::mutate(lag_obs = previous_prediction)
+    previous_prediction <- temp_forecast |>
+      dplyr::filter(date == forecast_dates[i] - days(1)) |>
+      dplyr::select(parameter, lag_obs = prediction)
+
+    single_date <- dplyr::filter(forecast_df, date == forecast_dates[i])
+
+    if (nrow(previous_prediction) == 1) {
+      # first forecast day: lag is the single last observation
+      single_date <- dplyr::mutate(single_date, lag_obs = previous_prediction$lag_obs)
+    } else {
+      # match the lag to the same ensemble member
+      single_date <- dplyr::left_join(single_date, previous_prediction, by = "parameter")
+    }
     
     ens_inflow <- predict(xgboost_inflow_fit, new_data = single_date)
     
